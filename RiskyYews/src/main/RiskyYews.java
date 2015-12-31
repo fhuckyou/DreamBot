@@ -31,11 +31,11 @@ public class RiskyYews extends AbstractScript {
 				&& !getLocalPlayer().isInCombat());
 		
 		currentYew = getGameObjects().closest(yew -> yew != null
-													&& yew.getName() != null
-													&& yew.getName().equals(i)
-													&& yew.distance(t) < 5
-													&& !getLocalPlayer().isAnimating()
-													&& !getLocalPlayer().isInCombat());
+				&& yew.getName() != null
+				&& yew.getName().equals(i)
+				&& yew.distance(t) < 5
+				&& !getLocalPlayer().isAnimating()
+				&& !getLocalPlayer().isInCombat());
 		
 		if(currentYew == null && !getInventory().isFull()
 				&& getInventory().contains("Steel axe")
