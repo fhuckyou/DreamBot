@@ -1,34 +1,39 @@
 package main;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.Graphics;
 import java.lang.Thread.State;
+import java.text.DecimalFormat;
 
 import org.dreambot.api.methods.container.impl.Inventory;
 import org.dreambot.api.methods.map.Tile;
+import org.dreambot.api.methods.skills.Skill;
 import org.dreambot.api.script.AbstractScript;
 import org.dreambot.api.script.Category;
 import org.dreambot.api.script.ScriptManifest;
+import org.dreambot.api.script.listener.PaintListener;
+import org.dreambot.api.utilities.Timer;
 import org.dreambot.api.wrappers.interactive.GameObject;
-import org.dreambot.api.wrappers.interactive.NPC;
-import org.dreambot.api.wrappers.interactive.Player;
-import org.dreambot.api.wrappers.items.GroundItem;
-import org.dreambot.api.wrappers.items.Item;
+import org.dreambot.api.wrappers.widgets.message.Message;
 
 @ScriptManifest(author = "Fhuckyou", category = Category.WOODCUTTING, name = "RiskyYews", version = 1.0)
-public class RiskyYews extends AbstractScript {
+public class RiskyYews extends AbstractScript implements PaintListener {
 	private State state;
+	
+	private Timer r = new Timer();
+	
+	private int costOfItem;
+	private int itemsMade;
+	private double gpGained;
+	private double totalGpGained;
 
 	
 	
 	private enum State{
-        CHOP, NULL, RUN, BANK, WALKTOYEW;//states
+        CHOP, WAITING, RUN, BANK, WALKTOYEW;//states
 }
 	
 	private State getState(){
-		
-		nextYew = getGameObjects().closest(yew -> yew != null
-				&& yew.getName() != null
-				&& yew.getName().equals(i)
-				&& !getLocalPlayer().isAnimating()
-				&& !getLocalPlayer().isInCombat());
 		
 		currentYew = getGameObjects().closest(yew -> yew != null
 				&& yew.getName() != null
@@ -50,7 +55,6 @@ public class RiskyYews extends AbstractScript {
 				//&& getInventory().contains("Cake")
 				&& !getLocalPlayer().isAnimating()
 				&& getLocalPlayer().distance(t) > 25) {
-			log("fsdf");
 			return state.WALKTOYEW;		
 			}
 		
@@ -70,13 +74,18 @@ public class RiskyYews extends AbstractScript {
 				&& getInventory().contains("Steel axe")) {
 			return state.CHOP;
 		}
-			return state.NULL;//doing nothing
-	
+		return state.WAITING;
 	}
 	private GameObject currentYew;
-	private GameObject nextYew;
 	private final Tile t = new Tile(3022,3315,0);
+	private final Tile saftey = new Tile(3007,3339,0);
 	private String i = "Yew";
+	
+	public void onMessage(Message m) {
+		if (m.getMessage().contains("You get some yew logs.")) {
+			itemsMade += 1;
+		}
+	}
 	
 	@Override
 	public int onLoop() {
@@ -119,9 +128,13 @@ public class RiskyYews extends AbstractScript {
 		
 		case RUN:
 				log("Running to safezone");
+				if(!getWalking().isRunEnabled()) {
+					getWalking().toggleRun();
+				}
+				getWalking().walk(saftey);
 			break;
 			
-		case NULL:
+		case WAITING:
 			log("Waiting.");
 			break;
 			
@@ -129,7 +142,24 @@ public class RiskyYews extends AbstractScript {
         return 0;
     }
 	
+	public void onPaint(Graphics g) {
+		gpGained = itemsMade - costOfItem;
+		totalGpGained = gpGained / 1000;
+		
+		g.setColor(Color.RED);
+		g.setFont(new Font("Courier New", 0, 16));
+		g.drawString("Time Running: " + r.formatTime(), 250, 357);
+		g.drawString("Experience(p/h): " + getSkillTracker().getGainedExperience(Skill.WOODCUTTING) + "(" + getSkillTracker().getGainedExperiencePerHour(Skill.WOODCUTTING) + ")", 250, 370);
+		g.drawString("Level(gained): " + getSkills().getRealLevel(Skill.WOODCUTTING) +"(" + getSkillTracker().getGainedLevels(Skill.WOODCUTTING) + ")", 250, 383);
+		//DecimalFormat df = new DecimalFormat("#");
+		//g.drawString("Total $ earned:"+ df.format(totalGpGained) + "Gp ", 250, 396);
+		if(state != null)
+			g.drawString("State: " + state.toString(), 250, 396);//409
+	}
+	
 	public void onStart() {
+		getSkillTracker().start(Skill.WOODCUTTING);
+		costOfItem = 500;
 	}
 
 }
