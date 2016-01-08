@@ -21,7 +21,7 @@ import org.dreambot.api.wrappers.interactive.Player;
 import org.dreambot.api.wrappers.items.GroundItem;
 import org.dreambot.api.wrappers.items.Item;
 
-@ScriptManifest(author = "Wasteful", category = Category.THIEVING, name = "AntiTheft", version = 1.0)
+@ScriptManifest(author = "Fhuckyou", category = Category.COMBAT, name = "RiskyGuardKiller", version = 1.0)
 public class main extends AbstractScript implements PaintListener {
 	
 	//Variables vc = new Variables();ds
