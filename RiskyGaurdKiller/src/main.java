@@ -24,7 +24,7 @@ import org.dreambot.api.wrappers.items.Item;
 @ScriptManifest(author = "Wasteful", category = Category.THIEVING, name = "AntiTheft", version = 1.0)
 public class main extends AbstractScript implements PaintListener {
 	
-	//Variables vc = new Variables();
+	//Variables vc = new Variables();ds
 	
 	private State state;
 	
