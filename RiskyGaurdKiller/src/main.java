@@ -1,6 +1,9 @@
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Stroke;
 import java.lang.Thread.State;
 import java.util.List;
 
@@ -27,6 +30,7 @@ public class main extends AbstractScript implements PaintListener {
 	//Variables vc = new Variables();ds
 	
 	private State state;
+	private final BasicStroke stroke1 = new BasicStroke(5);
 	
 	
 	
@@ -42,11 +46,8 @@ public class main extends AbstractScript implements PaintListener {
 												&& stalls.getName() != null
 												&& stalls.getName().equals(j));
 		
-		food = getInventory().get(cake -> 
-				   cake != null && cake.getID() == 1891
-				|| cake != null && cake.getID() == 1893
-				|| cake != null && cake.getID() == 1895);
-		
+		food = getInventory().get(cake -> cake != null
+										&& cake.getName().contains("cake"));
 		
 		stall = getGameObjects().closest(stall -> stall != null
 												&& stall.getName() != null
@@ -67,7 +68,7 @@ public class main extends AbstractScript implements PaintListener {
 										&& npc.distance(centerPoint) < 8);
 		
 		if(currentNpc != null
-				&& getLocalPlayer().getHealthPercent() >= 70
+				&& getLocalPlayer().getHealthPercent() >= 95
 				&& food != null) {
 			return state.ATT;
 		}
@@ -94,7 +95,7 @@ public class main extends AbstractScript implements PaintListener {
 			getWalking().walk(centerPoint);
 		}
 		
-		if(food != null && getLocalPlayer().getHealthPercent() <= 70) {
+		if(food != null && getLocalPlayer().getHealthPercent() <= 95) {
 			return state.EAT;
 		}
 		
@@ -148,18 +149,7 @@ public class main extends AbstractScript implements PaintListener {
 		case EAT:
 			currentState = "Eating";
 			
-				if(getInventory().contains("Slice of cake")) {
-					if(getLocalPlayer().getHealthPercent() < 70 && getInventory().interact("Slice of cake", "Eat")) {
-						sleep(700);
-					}
-				} else if(getInventory().contains("2/3 cake")) {
-					if(getLocalPlayer().getHealthPercent() < 70 && getInventory().interact("2/3 cake", "Eat")) {
-					sleep(700);
-					}
-				} else if(getInventory().contains("Cake")) {
-					if(getLocalPlayer().getHealthPercent() < 70 && getInventory().interact("Cake", "Eat")) {
-					sleep(700);
-				}
+				if(getLocalPlayer().getHealthPercent() <= 95 && food != null && food.interact()) {
 			}
 			break;
 			
