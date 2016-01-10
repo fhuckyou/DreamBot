@@ -59,7 +59,7 @@ public class main extends AbstractScript implements PaintListener {
 										&& npc.distance(centerPoint) < 8);
 		
 		if(currentNpc != null
-				&& getCombat().getHealthPercent() >= 90
+				&& getCombat().getHealthPercent() > 70
 				&& food != null
 				&& hasBolts) {
 			return state.ATT;
