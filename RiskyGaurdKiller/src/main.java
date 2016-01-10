@@ -2,17 +2,9 @@ import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.Stroke;
-import java.lang.Thread.State;
-import java.util.List;
 
-import org.dreambot.api.input.Mouse;
-import org.dreambot.api.methods.container.impl.Inventory;
-import org.dreambot.api.methods.item.GroundItems;
 import org.dreambot.api.methods.map.Tile;
 import org.dreambot.api.methods.skills.Skill;
-import org.dreambot.api.methods.tabs.Tab;
 import org.dreambot.api.script.AbstractScript;
 import org.dreambot.api.script.Category;
 import org.dreambot.api.script.ScriptManifest;
@@ -20,7 +12,6 @@ import org.dreambot.api.script.listener.PaintListener;
 import org.dreambot.api.utilities.Timer;
 import org.dreambot.api.wrappers.interactive.GameObject;
 import org.dreambot.api.wrappers.interactive.NPC;
-import org.dreambot.api.wrappers.interactive.Player;
 import org.dreambot.api.wrappers.items.GroundItem;
 import org.dreambot.api.wrappers.items.Item;
 
@@ -40,14 +31,14 @@ public class main extends AbstractScript implements PaintListener {
 	
 	private State getState(){
 		boolean inCombat = getLocalPlayer().isInCombat();
+		boolean hasBolts = getEquipment().contains("Bone bolts");
 		
 		ss = getGameObjects().closest(stalls -> stalls != null
 												&& stalls.distance(goodStall) < 2
 												&& stalls.getName() != null
 												&& stalls.getName().equals(j));
 		
-		food = getInventory().get(cake -> cake != null
-										&& cake.getName().contains("cake"));
+		food = getInventory().get(fz -> fz != null && fz.hasAction("Eat"));
 		
 		stall = getGameObjects().closest(stall -> stall != null
 												&& stall.getName() != null
@@ -68,13 +59,23 @@ public class main extends AbstractScript implements PaintListener {
 										&& npc.distance(centerPoint) < 8);
 		
 		if(currentNpc != null
-				&& getLocalPlayer().getHealthPercent() >= 95
-				&& food != null) {
+				&& getCombat().getHealthPercent() >= 90
+				&& food != null
+				&& hasBolts) {
 			return state.ATT;
 		}
 		
 		if(getDialogues().canContinue()) {
 			getDialogues().clickContinue();
+		}
+		
+		if(!hasBolts && !getLocalPlayer().isInCombat() && !getLocalPlayer().isMoving()) {
+			getTabs().logout();
+			currentState = "Logging out.";
+			sleep(13000);
+		} else if(!hasBolts && getLocalPlayer().isInCombat()) {
+			getWalking().walk(saftey);
+			currentState = "Running to saftey";
 		}
 		
 		if(getInventory().isFull() && getInventory().contains("Bread")
@@ -86,16 +87,17 @@ public class main extends AbstractScript implements PaintListener {
 			//return state.HOPWORLDS;
 		//}
 		
-		if(food == null
-				&& getLocalPlayer().getInteractingCharacter() == null) {
+		if(getLocalPlayer().getInteractingCharacter() == null && !getLocalPlayer().isInCombat()) {
+			if(food == null) {
 			return state.STEAL;
 		}
+	}
 		
-		if(currentNpc == null && getLocalPlayer().distance(centerPoint) > 8) {
+		if(currentNpc == null && getLocalPlayer().distance(centerPoint) > 8 && hasBolts) {
 			getWalking().walk(centerPoint);
 		}
 		
-		if(food != null && getLocalPlayer().getHealthPercent() <= 95) {
+		if(getCombat().getHealthPercent() <= 70 && food != null) {
 			return state.EAT;
 		}
 		
@@ -116,6 +118,7 @@ public class main extends AbstractScript implements PaintListener {
 	private GameObject ss;
 	public Tile goodStall = new Tile(2656, 3311, 0);
 	public Tile centerPoint = new Tile(2661, 3307, 0);
+	public Tile saftey = new Tile(2654, 3284, 0);
 	private Timer r = new Timer();
 	private String currentState = "";
 	
@@ -130,7 +133,7 @@ public class main extends AbstractScript implements PaintListener {
 				currentState = "Attacking gaurd.";
 				log("Potential attack to " + currentNpc.getName());
 				currentNpc.interact("Attack");
-				sleep(500);
+				sleep(3000);
 				sleepUntil(() -> getLocalPlayer().getInteractingCharacter() == null, 2000);
 			break;
 			
@@ -149,7 +152,13 @@ public class main extends AbstractScript implements PaintListener {
 		case EAT:
 			currentState = "Eating";
 			
-				if(getLocalPlayer().getHealthPercent() <= 95 && food != null && food.interact()) {
+			for(int i = 0; i < 28; i++){//Credit to Nezz's open source
+				Item food = getInventory().getItemInSlot(i);
+				if(food != null && food.hasAction("Eat") && getCombat().getHealthPercent() != 100){
+					getInventory().slotInteract(i, "Eat");
+					sleep(600,900);
+					break;
+				}
 			}
 			break;
 			
@@ -165,18 +174,15 @@ public class main extends AbstractScript implements PaintListener {
 			currentState = "Getting more food.";
 			log("stealing");
 			
-			if(ss != null 
-					&& getLocalPlayer().distance(goodStall) < 5 
-					&& food == null
-					&& stall != null
-					&& !getLocalPlayer().isInCombat()
-					&& stall.interact("Steal-from")) {
+			if(ss != null && getLocalPlayer().distance(goodStall) < 5 && stall != null && !getLocalPlayer().isInCombat()) {
+				if(food == null) {
+					stall.interact("Steal-from");
+				}
 			}
 			
 			if(ss != null 
 					&& stall != null
 					&& stall.distance(getLocalPlayer()) > 5
-					&& food == null
 					|| getLocalPlayer().distance(goodStall) > 1) {
 				getWalking().walk(goodStall);
 			}
