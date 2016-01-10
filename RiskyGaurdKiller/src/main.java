@@ -67,7 +67,7 @@ public class main extends AbstractScript implements PaintListener {
 										&& npc.distance(centerPoint) < 8);
 		
 		if(currentNpc != null
-				&& getLocalPlayer().getHealthPercent() >= 90
+				&& getLocalPlayer().getHealthPercent() >= 70
 				&& food != null) {
 			return state.ATT;
 		}
@@ -94,7 +94,7 @@ public class main extends AbstractScript implements PaintListener {
 			getWalking().walk(centerPoint);
 		}
 		
-		if(food != null && getLocalPlayer().getHealthPercent() <= 90) {
+		if(food != null && getLocalPlayer().getHealthPercent() <= 70) {
 			return state.EAT;
 		}
 		
@@ -112,7 +112,6 @@ public class main extends AbstractScript implements PaintListener {
 	private String j = "Baker's stall";
 	public String i = "Bone bolts";
 	public String npc2 = "Guard";
-	public int[] ids = {1891, 1893};
 	private GameObject ss;
 	public Tile goodStall = new Tile(2656, 3311, 0);
 	public Tile centerPoint = new Tile(2661, 3307, 0);
@@ -150,15 +149,15 @@ public class main extends AbstractScript implements PaintListener {
 			currentState = "Eating";
 			
 				if(getInventory().contains("Slice of cake")) {
-					if(getLocalPlayer().getHealthPercent() < 90 && getInventory().interact("Slice of cake", "Eat")) {
+					if(getLocalPlayer().getHealthPercent() < 70 && getInventory().interact("Slice of cake", "Eat")) {
 						sleep(700);
 					}
 				} else if(getInventory().contains("2/3 cake")) {
-					if(getLocalPlayer().getHealthPercent() < 90 && getInventory().interact("2/3 cake", "Eat")) {
+					if(getLocalPlayer().getHealthPercent() < 70 && getInventory().interact("2/3 cake", "Eat")) {
 					sleep(700);
 					}
 				} else if(getInventory().contains("Cake")) {
-					if(getLocalPlayer().getHealthPercent() < 90 && getInventory().interact("Cake", "Eat")) {
+					if(getLocalPlayer().getHealthPercent() < 70 && getInventory().interact("Cake", "Eat")) {
 					sleep(700);
 				}
 			}
