@@ -30,10 +30,8 @@ public class RiskyYews extends AbstractScript implements PaintListener {
 	private double gpGained;
 	private double totalGpGained;
 	
-	private GameObject eastYew;
-	private GameObject westYew;
-	private final Tile tt = new Tile(2997,3314,0);
-	private final Tile t = new Tile(3022,3315,0);
+	private GameObject yew;
+	private final Tile trees = new Tile(2997,3314,0);
 	private String i = "Yew";
 	private String currentState = "";
 
@@ -44,39 +42,11 @@ public class RiskyYews extends AbstractScript implements PaintListener {
 }
 	
 	private State getState(){
-		eastYew = getGameObjects().closest(yew -> yew != null
+		yew = getGameObjects().closest(yew -> yew != null
 				&& yew.getName() != null
 				&& yew.getName().equals(i)
-				&& yew.distance(tt) < 8
 				&& !getLocalPlayer().isAnimating()
 				&& !getLocalPlayer().isInCombat());
-		
-		westYew = getGameObjects().closest(yew -> yew != null
-				&& yew.getName() != null
-				&& yew.getName().equals(i)
-				&& yew.distance(t) < 5
-				&& !getLocalPlayer().isAnimating()
-				&& !getLocalPlayer().isInCombat());
-		
-		if(westYew == null && eastYew != null
-				&& !getInventory().isFull()
-				//&& getInventory().contains("Cake")
-				&& getInventory().contains("Steel axe")
-				&& !getLocalPlayer().isAnimating()
-				&& getLocalPlayer().distance(t) < 8) {
-			log("in 2");
-			return state.WALKTOYEW2;
-		}
-		
-		if(westYew != null && eastYew == null
-				&& !getInventory().isFull()
-				//&& getInventory().contains("Cake")
-				&& getInventory().contains("Steel axe")
-				&& !getLocalPlayer().isAnimating()
-				&& getLocalPlayer().distance(tt) < 8) {
-			log("in 1");
-			return state.WALKTOYEW;
-		}
 		
 		
 		
@@ -89,24 +59,15 @@ public class RiskyYews extends AbstractScript implements PaintListener {
 			return state.RUN;
 		}
 		
-		if(westYew != null && !getInventory().isFull()
-				//&& getInventory().contains("Cake")
-				&& getInventory().contains("Steel axe")
-				|| eastYew != null && !getInventory().isFull()
-						//&& getInventory().contains("Cake")
-						&& getInventory().contains("Steel axe")) {
-			return state.CHOP;
-		}
-		
-		if(westYew != null || eastYew != null) {
-			if(!getInventory().isFull()
+		if(yew != null) {
+				if(!getInventory().isFull()
 				//&& getInventory().contains("Cake")
 				&& getInventory().contains("Steel axe")) {
-			return state.CHOP;
+					return State.CHOP;
+				}
 		}
-		}
-		return state.WAITING;
-	}
+	return state.WAITING;
+}
 	private final Tile saftey = new Tile(3007,3339,0);
 	
 	public void onMessage(Message m) {
@@ -122,35 +83,14 @@ public class RiskyYews extends AbstractScript implements PaintListener {
 		switch(state) {
 		
 		case CHOP:
-			if(getLocalPlayer().distance(eastYew) < getLocalPlayer().distance(westYew)) {
-				getWalking().walk(eastYew);
-				sleepUntil(() -> eastYew.isOnScreen(), 2000);
-				if(eastYew != null && eastYew.isOnScreen()) {
-					eastYew.interact("Chop down");
-					sleep(500);
+				if(yew != null && getLocalPlayer().getInteractingCharacter() == null) {
+				getWalking().walk(yew);
+				sleepUntil(() -> !getLocalPlayer().isMoving(), 2000);
+					yew.interact("Chop down");
+					sleep(1500);
 					sleepUntil(() -> !getLocalPlayer().isAnimating(), 2000);
-					log("Potential tree to cut" + westYew.getName());
-				}
-			} else {
-				getWalking().walk(westYew);
-				sleepUntil(() -> westYew.isOnScreen(), 2000);
-				if(westYew != null && westYew.isOnScreen()) {
-					westYew.interact("Chop down");
-					sleep(500);
-					sleepUntil(() -> !getLocalPlayer().isAnimating(), 2000);
-					log("Potential tree to cut" + westYew.getName());
-				}
-			}
-			break;
-			
-		case WALKTOYEW:
-			log("walking");
-				getWalking().walk(t);
-			break;
-			
-		case WALKTOYEW2:
-			log("walking2");
-				getWalking().walk(tt);
+					log("Potential tree to cut" + yew.getName());
+		}
 			break;
 			
 		case BANK:
@@ -169,7 +109,7 @@ public class RiskyYews extends AbstractScript implements PaintListener {
 							sleep(500);
 							getBank().withdraw("Steel axe");
 							sleep(500);
-							getWalking().walk(t);
+							getWalking().walk(trees);
 							}
 						}
 							break;
